@@ -1,226 +1,66 @@
-# The Vue boilerplate for Cubbles
+# @cubbles/typescript-boilerplate
 
-This package contains a boilerplate to implement Cubbles components that interact with [Vue](https://vuejs.org/) components.
+This package contains a boilerplate to implement Cubbles components using [typescript](https://www.typescriptlang.org/). This package is build under the [webpack](https://webpack.js.org/) approach and uses [ts-loader](https://webpack.js.org/guides/typescript/) to compile the typescript code.
 
-## Setup YOUR package on top of this boilerplate
+## Setup YOUR package on top of this template
 
 ### Step 1: GIT - Clone
 
 ```bash
-$ git clone https://github.com/cubblesmasters/vue.git <your-package-name>
+git clone https://github.com/cubblesmasters/typescript.git <your-package-name>
 ```
 
 ### Step 2: GIT - Change the origin
 
 ```bash
-$ git remote rm origin
-$ git remote add origin git@github.com:<your-git>/<your-package-name>.git
-$ git config master.remote origin
-$ git config master.merge refs/heads/master
+git remote rm origin
+git remote add origin git@github.com:<your-git>/<your-package-name>.git
+git config master.remote origin
+git config master.merge refs/heads/master
 ```
 
 ### Step 3: NPM - Init the package for your purposes
 
 ```bash
-$ npm init
+npm init
 ...
 ```
 
-Now it's yours ... have fun ;-).
+## The boilerplate base sample
 
-## Cubbles and Vue interaction
+If you check the `src` folder of this boilerplate, you will find a folder called `elementary` that contains the following files:
 
-This boilerplate is ready to support Vue components. Since we employ [webpack](https://webpack.js.org/) and [vue-loader](https://vue-loader.vuejs.org/) to bundle scripts, you can develop Vue components in different files and then import them within the Cubbles component that you are developing. The build task will compile the code to be ready for browser use.
+* **Manifest.elementary**: contains the definition of your elementary (Check [this](https://cubbles.gitbook.io/docs/terms-and-concepts/artifacts) for more information).
+* **element.ts**: contains the logic of a Cubbles elementary coded using typescript.
+* **element.html**: contains the view of the elementary.
+* **element.sss**: contains the style definition of the elementary.
+* **SHOWROOM.html**: a ready-to-run sample using the elementary.
+* **cubx-component-defs.ts**: contains the interface definition for the object that you should pass to the [CubxComponent](https://cubbles.gitbook.io/docs/runtime-extension-rte/user-guide/cubbles-js-api/inside-interaction#the-cubxcomponent-object) object.
+* **custom-d-ts**: declares a module to be able to import *.sss* style sheets in our typescript scripts.
+* **toUpperCase.ts**: contains a function to convert string to upperCase. This script is just for demonstration purposes. So that you know how to use external functions, modules, interfaces, etc., in the logic of your elementary.
 
-### Creating your Vue components
+A demo of this component is available [online](https://cubbles.world/sandbox/cubbles-typescript-boilerplate@1.0.0-SNAPSHOT/cubbles-typescript-boilerplate-elementary/SHOWROOM.html).
 
-You should implement the Vue components that you need in the `src` folder. Create the *.vue* files that you require for your view components. A vue file would look similar to the one below:
+## Considerations regarding the element.ts script
 
-```html
-<template>
-<!-- Root element (e.g. a div or an input) for the Vue component -->
-</template>
+In the **element.ts** file the **CubxComponent** is declared as function, you should not remove that line to avoid TypeScript compilation errors. Also, we import the **CubxComponentPrototype** to assure that the object passed to the **CubxComponent** is as expected:
 
-<script>
-export default {
-    name: '...',
-    props: {},
-    data() { return ... },
-    methods: { ... }
-};
-</script>
+```typescript
+import { CubxComponentPrototype } from "./cubx-component-defs";
+// Declare the CubxComponent to make it available
+declare function CubxComponent(prototype: CubxComponentPrototype): void;
 ```
 
-### Using your Vue components within an elementary Cubbles component
+Therefore, you should respect the **CubxComponentPrototype** interface. To aim that you can use the *as CubxComponentPrototype* expression when passing the object parameter to **CubxComponent**. This would allow you to respect the interface, but also to extend it according to your needs:
 
-You should import the desired components and the needed Vue libraries in the script of your Cubbles component. Then, you can attach your Vue component when you need it (e.g. when the cubbles component is ready or after a slot value changes):
+```typescript
+// ...
 
-```javascript
-import './element.sss';
-import VueComponent from './VueComponent.vue';
-import Vue from 'vue';
-
-(function () {
-  'use strict';
-  // Call CubxPolymer Factory Method for registering /* @echo elementName */ Cubbles Component
-  CubxComponent({
-    is: '/* @echo elementName */',
-
-    /**
-     * Manipulate an element’s local DOM when the cubbles framework is initialized and ready to work.
-     */
-    contextReady: function () {
-      this.ready = true;
-      this.attachVueComponent();
-    },
-
-    attachVueComponent: function () {
-      let VueComponentClass = Vue.extend(VueComponent);
-      this.vueComponent = new VueComponentClass();
-      this.vueComponent.$mount();
-      this.vueComponent.onChangeCallback = (numberFromVue) => { this.updateNumberInput(numberFromVue) };
-      this.$$('#vueComponent').appendChild(this.vueComponent.$el);
-    }
-  });
-}());
+// Define the component respecting the CubxComponentPrototype interface
+CubxComponent({
+  is: ...
+} as CubxComponentPrototype)
 ```
-
-#### Interaction via data props
-
-A way to interact with your Vue component is through its `data`, for instance, after a slot value changes:
-
-#########
-
-```javascript
-import MyReactComponent from './path-to-react-element'; // import the react component
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-(function () {
-  'use strict';
-
-  // Call CubxPolymer Factory Method for registiering /* @echo elementName */ Cubbles Component
-  CubxComponent({
-    is: '/* @echo elementName */',
-    //...
-
-    /**
-     * Manipulate an element’s local DOM when the cubbles framework is initialized and ready to work.
-     */
-    contextReady: function () {
-      this.ready = true;
-      this._renderReactComponent();
-    },
-
-    /**
-     *  Observe the Cubbles-Component-Model: If value for slot 'SlotId' has changed ...
-     */
-    modelSlotIdChanged: function (newValue) {
-      if (this.ready) {
-        this._renderReactComponent();
-      }
-    },
-
-    _renderReactComponent: function () {
-      // Render the react component
-      ReactDOM.render(
-        <MyReactComponent myPropValue={this.model.slotId}/>,
-        this.querySelector('#reactRoot')
-      );
-    }
-  });
-}());
-```
-
-#### Accessing your React component's methods
-
-To be able to access the methods of your React component, you need a way to refer to it. To aim that, you can add a `ref` callback and set a property of your Cubbles components. This property will be a reference to your React component, you can run any method, for instance, after a slot value changes:
-
-```javascript
-import MyReactComponent from './path-to-react-element'; // import the react component
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-(function () {
-  'use strict';
-
-  // Call CubxPolymer Factory Method for registiering /* @echo elementName */ Cubbles Component
-  CubxComponent({
-    is: '/* @echo elementName */',
-    //...
-
-    /**
-     * Manipulate an element’s local DOM when the cubbles framework is initialized and ready to work.
-     */
-    contextReady: function () {
-      this.ready = true;
-      this._renderReactComponent();
-    },
-
-    /**
-     *  Observe the Cubbles-Component-Model: If value for slot 'SlotId' has changed ...
-     */
-    modelSlotIdChanged: function (newValue) {
-      if (this.ready) {
-        this.myReactComponent.aMethodFromReactComponent();
-      }
-    },
-
-    _renderReactComponent: function () {
-      // Render the react component
-      ReactDOM.render(
-        <MyReactComponent ref={(reactComponentRef) => {this.myReactComponent = reactComponentRef}}/>,
-        this.querySelector('#reactRoot')
-      );
-    }
-  });
-}());
-```
-
-### Accessing a Cubbles component from a React component
-
-A way to access an elementary Cubbles component from a React component is by passing a reference to a method (e.g. the setter of a slot value) using a `myPropMethod`. In the React component you just need to call it; i.e. `this.props.myPropMethod()`:
-
-```javascript
-import MyReactComponent from './path-to-react-element'; // import the react component
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-(function () {
-  'use strict';
-
-  // Call CubxPolymer Factory Method for registiering /* @echo elementName */ Cubbles Component
-  CubxComponent({
-    is: '/* @echo elementName */',
-    //...
-
-    /**
-     * Manipulate an element’s local DOM when the cubbles framework is initialized and ready to work.
-     */
-    contextReady: function () {
-      this.ready = true;
-      this._renderReactComponent();
-    },
-
-    _renderReactComponent: function () {
-      // Render the react component
-      ReactDOM.render(
-        <MyReactComponent myPropMethod={this.setSlotId.bind(this)}/>,
-        this.querySelector('#reactRoot')
-      );
-    }
-  });
-}());
-```
-
-### The boilerplate base sample
-
-If you check the `src` folder of this boilerplate, you will find a folder called `elementary` folder that contains two scripts:
-
-* **react-element.js**: contains the implementation of the React component that interacts with the Cubbles component.
-* **element.js**: contains the logic of a Cubbles elementary that interacts with a React component. As you see, the React component and libraries are imported in the first lines of this file.
-
-This sample implements a bidirectional interaction between a Cubbles component and a React component following the guidelines presented above. A demo of this component is available [online](https://cubbles.world/sandbox/cubbles-react-js-boilerplate@1.0.0-SNAPSHOT/cubbles-react-js-boilerplate-elementary/SHOWROOM.html).
 
 ## Development scripts
 
@@ -245,3 +85,5 @@ $ ntl
   validate-manifest
 (Move up and down to reveal more choices)
 ```
+
+> For more information about available scripts check [this](https://cubbles.gitbook.io/docs/v/coder-template-doc/developing-vanilla-boilerplate/available-scripts).
