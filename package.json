@@ -87,7 +87,7 @@
     "access": "public"
   },
   "dependencies": {
-    "vue": "^2.6.10",
+    "vue": "^3.0.0",
     "vue-loader": "^15.7.0",
     "vue-template-compiler": "^2.6.10",
     "walk": "^2.3.14"
